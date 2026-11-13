@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Typoposite</title>
+<meta name="description" content="Le quiz typo des graphistes : reconnais la police, personnalise ton glyphe et grimpe au classement.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='28' fill='%23FFD84A'/%3E%3Ctext x='50' y='76' text-anchor='middle' font-family='Georgia,serif' font-size='72' fill='%2314162B'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : planche de spécimen — un en-tête fixe, une colonne centrale, les choix en grille 2×2 */
+:root{
+  --paper:#F2F3F7; --card:#FFFFFF; --ink:#14162B; --muted:#5B5F7A; --line:#D6D8E3;
+  --accent:#2C3CF0; --on-accent:#FFFFFF; --hi:#FFD84A; --ok:#1F9D57; --bad:#D63B3B;
+  --f-display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --f-body:"Instrument Sans", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F1020; --card:#181A30; --ink:#ECEDF7; --muted:#9A9DB8; --line:#2A2C45;
+  --accent:#7C88FF; --on-accent:#0F1020; --hi:#FFD84A; --ok:#3CCB7F; --bad:#FF6B6B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1020; --card:#181A30; --ink:#ECEDF7; --muted:#9A9DB8; --line:#2A2C45;
+  --accent:#7C88FF; --on-accent:#0F1020; --hi:#FFD84A; --ok:#3CCB7F; --bad:#FF6B6B; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-block:20px 0}
+.logo{font-size:clamp(30px,6vw,46px);line-height:1;letter-spacing:-.01em;margin:0;font-weight:400}
+.logo span{display:inline-block}
+.me-chip{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.me-chip svg{width:40px;height:40px}
+nav{display:flex;gap:6px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{all:unset;cursor:pointer;padding:10px 14px;font-family:var(--f-mono);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+nav button:focus-visible,.btn:focus-visible,.choice:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.label{font-family:var(--f-mono);font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h2{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4.5vw,36px);line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0;max-width:62ch}
+.btn{cursor:pointer;border:0;border-radius:999px;padding:14px 26px;font:600 16px var(--f-body);background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.note{font-size:14px;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* intro */
+.intro{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:center}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.sheet div{aspect-ratio:1;display:grid;place-items:center;font-size:clamp(26px,5vw,40px);border:1px solid var(--line)}
+.sheet div:nth-child(5n+2){background:var(--hi);color:#14162B}
+
+/* jeu */
+.hud{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:100%}
+.specimen{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:clamp(18px,4vw,36px);display:flex;flex-direction:column;gap:14px;min-height:260px;position:relative;overflow:hidden}
+.specimen .big{font-size:clamp(46px,11vw,96px);line-height:1;overflow-wrap:anywhere}
+.specimen .pan{font-size:clamp(17px,3vw,22px)}
+.specimen .gl{font-size:clamp(22px,4vw,30px);letter-spacing:.06em;color:var(--muted)}
+.specimen .corner{position:absolute;top:10px;right:12px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{cursor:pointer;text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;font:600 17px var(--f-body);display:flex;gap:10px;align-items:center}
+.choice kbd{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+.choice.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--card))}
+.choice:disabled{cursor:default}
+.reveal{font-size:15px;color:var(--muted);min-height:1.5em}
+.reveal b{color:var(--ink)}
+.result{font-family:var(--f-display);font-weight:800;font-size:clamp(60px,14vw,120px);line-height:1;font-variant-numeric:tabular-nums}
+
+/* perso */
+.studio{display:grid;grid-template-columns:220px 1fr;gap:28px;align-items:start}
+.preview{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.preview svg{width:100%;max-width:180px;height:auto}
+.field{display:flex;flex-direction:column;gap:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;font:15px var(--f-body);min-width:44px;min-height:44px}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.swatch{width:44px;padding:0}
+input[type=text],input[type=password]{font:16px var(--f-body);color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;max-width:320px}
+input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+
+/* classement */
+.board{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.board li{display:grid;grid-template-columns:44px 48px 1fr auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.board .rk{font-family:var(--f-mono);font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.board li:nth-child(-n+3) .rk{color:var(--ink);font-weight:600}
+.board svg{width:44px;height:44px}
+.board .nm{min-width:0;overflow-wrap:anywhere;font-weight:600}
+.board .nm small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.board .sc{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums;text-align:right}
+.board li.you{background:color-mix(in srgb,var(--hi) 22%,transparent)}
+.youtag{font-family:var(--f-mono);font-size:11px;background:var(--hi);color:#14162B;border-radius:4px;padding:0 5px;margin-left:6px}
+
+@media (max-width:640px){
+  .intro,.studio{grid-template-columns:1fr}
+  .choices{grid-template-columns:1fr}
+  .preview svg{max-width:140px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 class="logo" id="logo" aria-label="Typoposite"></h1>
+    <div class="me-chip" id="meChip"></div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" id="tab-jeu" aria-selected="true" data-view="jeu">Jouer</button>
+    <button role="tab" id="tab-perso" aria-selected="false" data-view="perso">Mon perso</button>
+    <button role="tab" id="tab-board" aria-selected="false" data-view="board">Classement</button>
+  </nav>
+
+  <!-- JOUER -->
+  <section id="v-jeu" class="stack">
+    <div id="intro" class="intro">
+      <div class="stack">
+        <span class="label">10 spécimens · 15 secondes chacun</span>
+        <h2>Quelle est cette typo&nbsp;?</h2>
+        <p>Un mot s'affiche dans une police classique. Trouve son nom parmi quatre propositions, de la même famille pour corser le jeu. Plus tu réponds vite, plus tu marques. Ton meilleur score part au classement commun.</p>
+        <div class="row"><button class="btn" id="start">Lancer une partie</button></div>
+        <form class="note stack" id="authOut" autocomplete="on">
+          <span class="label">Compte joueur</span>
+          <p>Connecte-toi pour garder ton perso et entrer au classement. Sans compte, tu joues en invité.</p>
+          <input type="text" id="loginName" placeholder="Pseudo" maxlength="20" autocomplete="username" aria-label="Pseudo">
+          <input type="password" id="loginPass" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password" aria-label="Mot de passe">
+          <div class="row"><button class="btn" id="loginBtn" type="submit">Se connecter</button><button class="btn ghost" id="signupBtn" type="button">Créer un compte</button></div>
+          <span class="reveal" id="authMsg" aria-live="polite"></span>
+        </form>
+        <p class="note row" id="authIn" hidden><span id="authWho"></span><button class="btn ghost" id="logoutBtn" type="button">Se déconnecter</button></p>
+      </div>
+      <div class="sheet" id="sheet" aria-hidden="true"></div>
+    </div>
+
+    <div id="game" class="stack" hidden>
+      <div class="hud"><span id="qNum">01 / 10</span><span id="qScore">0 pts</span></div>
+      <div class="bar"><i id="timer"></i></div>
+      <div class="specimen" id="spec" aria-live="polite">
+        <span class="label corner" id="cat"></span>
+        <div class="big" id="sBig"></div>
+        <div class="pan" id="sPan"></div>
+        <div class="gl">Aa Gg Rr Qq &amp; 0123</div>
+      </div>
+      <div class="choices" id="choices"></div>
+      <div class="reveal" id="reveal" aria-live="polite"></div>
+      <div class="row"><button class="btn" id="next" hidden>Suivant</button></div>
+    </div>
+
+    <div id="end" class="stack" hidden>
+      <span class="label">Partie terminée</span>
+      <div class="result" id="final">0</div>
+      <p id="endMsg"></p>
+      <div class="row"><button class="btn" id="again">Rejouer</button><button class="btn ghost" id="seeBoard">Voir le classement</button></div>
+    </div>
+  </section>
+
+  <!-- PERSO -->
+  <section id="v-perso" class="stack" hidden>
+    <div class="stack">
+      <span class="label">Ton personnage</span>
+      <h2>Un glyphe avec des yeux</h2>
+    </div>
+    <div class="studio">
+      <div class="preview"><div id="pv"></div><span class="label" id="pvName"></span></div>
+      <div class="stack">
+        <div class="field"><label class="label" for="pseudo">Pseudo</label><input type="text" id="pseudo" maxlength="20" placeholder="Ex. Kerning Kid"></div>
+        <div class="field"><label class="label" for="glyph">Lettre</label><input type="text" id="glyph" maxlength="1" style="max-width:80px;text-align:center;font-size:20px"></div>
+        <div class="field"><span class="label">Police du corps</span><div class="opts" id="oFont"></div></div>
+        <div class="field"><span class="label">Couleur</span><div class="opts" id="oColor"></div></div>
+        <div class="field"><span class="label">Yeux</span><div class="opts" id="oEyes"></div></div>
+        <div class="field"><span class="label">Accessoire</span><div class="opts" id="oAcc"></div></div>
+        <div class="row"><button class="btn" id="save">Enregistrer</button><span class="reveal" id="saveMsg"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLASSEMENT -->
+  <section id="v-board" class="stack" hidden>
+    <div class="stack"><span class="label">Meilleurs scores de tous les joueurs</span><h2>Classement</h2></div>
+    <ol class="board" id="board"></ol>
+    <p class="note" id="boardEmpty">Le classement apparaîtra ici dès que quelqu'un aura terminé une partie. Lance une partie pour prendre la tête.</p>
+  </section>
+</div>
+
+<script>
+// ---------- Données ----------
+const FONTS = [
+  // serif
+  {n:"EB Garamond",c:"serif",d:"d'après Claude Garamond, XVIᵉ siècle"},
+  {n:"Libre Baskerville",c:"serif",d:"d'après John Baskerville, 1757"},
+  {n:"Libre Caslon Text",c:"serif",d:"d'après William Caslon, 1722"},
+  {n:"Bodoni Moda",c:"serif",d:"d'après Giambattista Bodoni, vers 1798"},
+  {n:"GFS Didot",c:"serif",d:"d'après Firmin Didot, vers 1800"},
+  {n:"Playfair Display",c:"serif",d:"Claus Eggers Sørensen, 2011"},
+  {n:"Merriweather",c:"serif",d:"Sorkin Type, 2010"},
+  {n:"Cormorant Garamond",c:"serif",d:"Christian Thalmann, 2015"},
+  {n:"Source Serif 4",c:"serif",d:"Frank Grießhammer, Adobe"},
+  {n:"DM Serif Display",c:"serif",d:"Colophon Foundry"},
+  {n:"Abril Fatface",c:"serif",d:"TypeTogether, 2011"},
+  {n:"Fraunces",c:"serif",d:"Undercase Type, 2020"},
+  // sans
+  {n:"Jost",c:"sans",d:"Owen Earl, inspirée de Futura (Paul Renner, 1927)"},
+  {n:"Montserrat",c:"sans",d:"Julieta Ulanovsky, 2011"},
+  {n:"Roboto",c:"sans",d:"Christian Robertson, Google"},
+  {n:"Open Sans",c:"sans",d:"Steve Matteson, 2011"},
+  {n:"Lato",c:"sans",d:"Łukasz Dziedzic, 2010"},
+  {n:"Raleway",c:"sans",d:"Matt McInerney, 2010"},
+  {n:"Poppins",c:"sans",d:"Indian Type Foundry, 2014"},
+  {n:"Josefin Sans",c:"sans",d:"Santiago Orozco, 2010"},
+  {n:"Work Sans",c:"sans",d:"Wei Huang, 2015"},
+  {n:"IBM Plex Sans",c:"sans",d:"Mike Abbink et Bold Monday, 2017"},
+  {n:"Rubik",c:"sans",d:"Hubert & Fischer, 2015"},
+  {n:"Nunito",c:"sans",d:"Vernon Adams"},
+  {n:"Oswald",c:"sans",d:"Vernon Adams, 2011"},
+  {n:"Bebas Neue",c:"sans",d:"Dharma Type"},
+  {n:"Anton",c:"sans",d:"Vernon Adams"},
+  {n:"Archivo Black",c:"sans",d:"Omnibus-Type"},
+  // mono
+  {n:"Space Mono",c:"mono",d:"Colophon Foundry, 2016"},
+  {n:"Courier Prime",c:"mono",d:"Alan Dague-Greene, 2013"},
+  {n:"IBM Plex Mono",c:"mono",d:"Mike Abbink et Bold Monday, 2017"},
+  {n:"JetBrains Mono",c:"mono",d:"JetBrains, 2020"},
+  // fantaisie
+  {n:"Lobster",c:"fantaisie",d:"Pablo Impallari, 2010"},
+  {n:"Pacifico",c:"fantaisie",d:"Vernon Adams, 2011"},
+  {n:"Dancing Script",c:"fantaisie",d:"Pablo Impallari, 2010"},
+  {n:"Caveat",c:"fantaisie",d:"Pablo Impallari, 2015"},
+  {n:"Righteous",c:"fantaisie",d:"Astigmatic"},
+  {n:"Press Start 2P",c:"fantaisie",d:"CodeMan38, 2011"},
+];
+const CAT = {serif:"Serif",sans:"Sans serif",mono:"Chasse fixe",fantaisie:"Fantaisie"};
+const WORDS = ["Hamburgefonstiv","Kerning","Ligature","Empattement","Graisse","Typographe","Spécimen","Interlettrage","Casse","Italique","Crénage","Gutenberg"];
+const PANGRAMS = ["Portez ce vieux whisky au juge blond qui fume.","Voyez le brick géant que j'examine près du wharf.","Le cœur déçu mais l'âme plutôt naïve, Louÿs rêva de crapaüter."];
+const AV_FONTS = ["EB Garamond","Bodoni Moda","Jost","Abril Fatface","Space Mono","Lobster","Archivo Black","Press Start 2P"];
+const AV_COLORS = ["#FFD84A","#7C88FF","#FF8FA3","#5ED3A2","#FF9F43","#B9A6FF"];
+const EYES = ["Ronds","Endormis","Pixels"];
+const ACCS = ["Aucun","Béret","Couronne","Lunettes","Crayon"];
+const Q_COUNT = 10, Q_TIME = 15;
+
+// Charge toutes les polices du jeu depuis Google Fonts
+(() => {
+  const l = document.createElement("link");
+  l.rel = "stylesheet";
+  l.href = "https://fonts.googleapis.com/css2?" + FONTS.map(f => "family=" + f.n.replace(/ /g, "+")).join("&") + "&display=block";
+  document.head.appendChild(l);
+})();
+
+// ---------- Utilitaires ----------
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clampInt = (v, max) => Number.isInteger(v) && v >= 0 && v < max ? v : 0;
+const points = (correct, remaining) => correct ? 100 + Math.round(Math.max(0, remaining) * 10) : 0;
+
+function buildQuestions() {
+  return shuffle(FONTS).slice(0, Q_COUNT).map(ans => {
+    let pool = shuffle(FONTS.filter(f => f.c === ans.c && f !== ans));
+    if (pool.length < 3) pool = pool.concat(shuffle(FONTS.filter(f => f.c !== ans.c)));
+    return {ans, choices: shuffle([ans, ...pool.slice(0, 3)]), word: WORDS[rnd(WORDS.length)], pan: PANGRAMS[rnd(PANGRAMS.length)]};
+  });
+}
+// auto-vérification de la logique de score et des questions
+(() => {
+  console.assert(points(true, 15) === 250 && points(false, 10) === 0 && points(true, -1) === 100, "score");
+  const qs = buildQuestions();
+  console.assert(qs.length === Q_COUNT && qs.every(q => q.choices.length === 4 && new Set(q.choices).size === 4 && q.choices.includes(q.ans)), "questions");
+})();
+
+// ---------- Avatar ----------
+function cleanAvatar(a) {
+  a = a && typeof a === "object" ? a : {};
+  const g = typeof a.g === "string" && a.g.trim() ? [...a.g.trim()][0] : "T";
+  return {g, f: clampInt(a.f, AV_FONTS.length), c: clampInt(a.c, AV_COLORS.length), e: clampInt(a.e, EYES.length), a: clampInt(a.a, ACCS.length)};
+}
+function avatarSVG(raw) {
+  const a = cleanAvatar(raw), ink = "#14162B";
+  const eyes = [
+    `<circle cx="38" cy="44" r="8" fill="#fff" stroke="${ink}" stroke-width="2.5"/><circle cx="62" cy="44" r="8" fill="#fff" stroke="${ink}" stroke-width="2.5"/><circle cx="40" cy="45" r="3.6" fill="${ink}"/><circle cx="64" cy="45" r="3.6" fill="${ink}"/>`,
+    `<path d="M30 45 q8 7 16 0 M54 45 q8 7 16 0" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`,
+    `<rect x="31" y="38" width="12" height="12" fill="#fff" stroke="${ink}" stroke-width="2.5"/><rect x="57" y="38" width="12" height="12" fill="#fff" stroke="${ink}" stroke-width="2.5"/><rect x="37" y="41" width="5" height="5" fill="${ink}"/><rect x="63" y="41" width="5" height="5" fill="${ink}"/>`,
+  ][a.e];
+  const acc = [
+    "",
+    `<ellipse cx="46" cy="3" rx="30" ry="9" fill="${ink}"/><circle cx="46" cy="-6" r="3.5" fill="${ink}"/>`,
+    `<path d="M28 6 L34 -12 L44 0 L50 -14 L56 0 L66 -12 L72 6 Z" fill="#FFC21A" stroke="${ink}" stroke-width="2.5" stroke-linejoin="round"/>`,
+    `<g fill="none" stroke="${ink}" stroke-width="3"><circle cx="38" cy="44" r="12"/><circle cx="62" cy="44" r="12"/><path d="M50 44 h0"/><path d="M48 42 q2 -3 4 0"/></g>`,
+    `<g transform="rotate(35 86 16)"><rect x="80" y="-6" width="10" height="34" fill="#FF9F43" stroke="${ink}" stroke-width="2"/><path d="M80 28 L85 38 L90 28 Z" fill="#F4D7B0" stroke="${ink}" stroke-width="2"/></g>`,
+  ][a.a];
+  return `<svg viewBox="-6 -18 112 124" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Personnage ${esc(a.g)}">
+    <rect x="4" y="4" width="92" height="92" rx="28" fill="${AV_COLORS[a.c]}"/>
+    <text x="50" y="86" text-anchor="middle" font-family="'${AV_FONTS[a.f]}', serif" font-size="74" fill="${ink}" opacity=".9">${esc(a.g)}</text>
+    ${eyes}${acc}</svg>`;
+}
+
+// ---------- État & comptes ----------
+// Même projet Supabase que Zoubiders (clé publique, faite pour être dans la page) ; table à part : joueurs
+const SB_URL = "https://pjbbjzribpearlrudgmj.supabase.co", SB_KEY = "sb_publishable_qsxF6N5NVTDv8kMLFFcA8A_H3BysYMJ";
+let sbp = null;
+const sb = () => sbp ||= import("https://esm.sh/@supabase/supabase-js@2.118.0").then(m => m.createClient(SB_URL, SB_KEY));
+// Supabase veut une adresse e-mail : le pseudo devient « pseudo@joueurs.typoposite.app » (adresse fictive, comptes séparés de Zoubiders)
+const toEmail = n => String(n).trim().toLowerCase().normalize("NFD").replace(/[^a-z0-9._-]/g, "") + "@joueurs.typoposite.app";
+const state = {uid: null, row: null, profile: {pseudo: "", avatar: cleanAvatar({g: "T", c: 0})}};
+
+function renderMeChip() {
+  const p = state.profile;
+  $("meChip").innerHTML = avatarSVG(p.avatar) + "<span></span>";
+  $("meChip").querySelector("span").textContent = state.uid ? (p.pseudo || "Sans pseudo") : "Invité";
+}
+
+async function initAccount() {
+  try {
+    const s = await sb();
+    const {data: {session}} = await s.auth.getSession();
+    await setUser(session?.user || null);
+  } catch (e) { console.warn(e); $("authMsg").textContent = "Serveur injoignable pour le moment : tu peux jouer en invité."; }
+  loadBoard();
+}
+async function setUser(u) {
+  state.uid = u?.id || null; state.row = null;
+  if (u) {
+    const name = String(u.user_metadata?.name || "").slice(0, 20);
+    const {data, error} = await (await sb()).from("joueurs").select("*").eq("user_id", u.id).maybeSingle();
+    if (error) console.warn(error);
+    state.row = data || null;
+    state.profile = data ? {pseudo: data.pseudo, avatar: cleanAvatar(data.avatar)} : {pseudo: name, avatar: cleanAvatar({g: (name[0] || "T").toUpperCase()})};
+  }
+  $("authOut").hidden = !!u; $("authIn").hidden = !u;
+  $("authWho").textContent = u ? "Connecté·e : " + (u.user_metadata?.name || "joueur") : "";
+  $("save").disabled = !u;
+  $("saveMsg").textContent = u ? "" : "Connecte-toi (onglet Jouer) pour enregistrer ton perso.";
+  renderMeChip(); loadStudio();
+}
+async function login(create) {
+  const name = $("loginName").value.trim(), pass = $("loginPass").value;
+  if (name.length < 2 || !/[a-z0-9]/i.test(name)) return $("authMsg").textContent = "Choisis un pseudo d'au moins 2 caractères (lettres ou chiffres).";
+  if (pass.length < 6) return $("authMsg").textContent = "Le mot de passe doit faire au moins 6 caractères.";
+  $("authMsg").textContent = create ? "Création du compte…" : "Connexion…";
+  try {
+    const s = await sb();
+    const {data, error} = create
+      ? await s.auth.signUp({email: toEmail(name), password: pass, options: {data: {name}}})
+      : await s.auth.signInWithPassword({email: toEmail(name), password: pass});
+    if (error) {
+      const m = String(error.message);
+      $("authMsg").textContent = /already/i.test(m) ? "Ce pseudo est déjà pris : connecte-toi ou choisis-en un autre."
+        : /invalid login/i.test(m) ? "Pseudo ou mot de passe incorrect."
+        : "Échec : " + m;
+      return;
+    }
+    if (!data.session) return $("authMsg").textContent = "Compte créé, mais le serveur demande une confirmation par e-mail.";
+    $("authMsg").textContent = ""; $("loginPass").value = "";
+    await setUser(data.user);
+    if (create && !state.row) { await upsertRow({}); loadBoard(); }
+  } catch (e) { console.warn(e); $("authMsg").textContent = "Serveur injoignable, réessaie dans un instant."; }
+}
+$("authOut").onsubmit = e => { e.preventDefault(); login(false); };
+$("signupBtn").onclick = () => login(true);
+$("logoutBtn").onclick = async () => { await (await sb()).auth.signOut(); await setUser(null); loadBoard(); };
+
+// Écrit la ligne du joueur (pseudo, perso, scores) ; la base vérifie les limites et que c'est bien la sienne
+async function upsertRow(scores) {
+  const d = state.row || {best: 0, total: 0, games: 0};
+  const body = {user_id: state.uid, pseudo: (state.profile.pseudo || "").trim().slice(0, 20) || "Anonyme", avatar: state.profile.avatar,
+    best: d.best, total: d.total, games: d.games, ...scores, updated_at: new Date().toISOString()};
+  const {error} = await (await sb()).from("joueurs").upsert(body);
+  if (error) throw error;
+  state.row = body;
+}
+
+// ---------- Navigation ----------
+function show(view) {
+  for (const b of document.querySelectorAll("nav button")) b.setAttribute("aria-selected", b.dataset.view === view);
+  for (const v of ["jeu", "perso", "board"]) $("v-" + v).hidden = v !== view;
+}
+document.querySelector("nav").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; show(b.dataset.view); if (b.dataset.view === "board") loadBoard(); });
+
+// ---------- Jeu ----------
+let G = null, raf = 0;
+async function startGame() {
+  G = {qs: buildQuestions(), i: 0, score: 0, good: 0};
+  $("intro").hidden = true; $("end").hidden = true; $("game").hidden = false;
+  ask();
+}
+async function ask() {
+  const q = G.qs[G.i];
+  $("qNum").textContent = String(G.i + 1).padStart(2, "0") + " / " + Q_COUNT;
+  $("qScore").textContent = G.score + " pts";
+  $("reveal").textContent = ""; $("next").hidden = true;
+  $("choices").innerHTML = "";
+  // attend la police (max 3 s) pour ne jamais montrer une police de secours
+  await Promise.race([document.fonts.load(`48px "${q.ans.n}"`), new Promise(r => setTimeout(r, 3000))]);
+  const fam = `"${q.ans.n}", ${q.ans.c === "mono" ? "monospace" : "serif"}`;
+  $("cat").textContent = CAT[q.ans.c];
+  for (const id of ["sBig", "sPan"]) $(id).style.fontFamily = fam;
+  document.querySelector(".specimen .gl").style.fontFamily = fam;
+  $("sBig").textContent = q.word; $("sPan").textContent = q.pan;
+  q.choices.forEach((f, k) => {
+    const b = document.createElement("button");
+    b.className = "choice"; b.dataset.k = k;
+    b.innerHTML = `<kbd>${k + 1}</kbd><span></span>`;
+    b.querySelector("span").textContent = f.n;
+    b.onclick = () => answer(k);
+    $("choices").appendChild(b);
+  });
+  G.t0 = performance.now(); G.done = false;
+  const tick = () => {
+    const rem = Q_TIME - (performance.now() - G.t0) / 1000;
+    $("timer").style.width = Math.max(0, rem / Q_TIME * 100) + "%";
+    if (rem <= 0) return answer(-1);
+    raf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function answer(k) {
+  if (!G || G.done) return;
+  G.done = true; cancelAnimationFrame(raf);
+  const q = G.qs[G.i], rem = Q_TIME - (performance.now() - G.t0) / 1000;
+  const ok = k >= 0 && q.choices[k] === q.ans, pts = points(ok, rem);
+  G.score += pts; if (ok) G.good++;
+  [...$("choices").children].forEach((b, j) => {
+    b.disabled = true;
+    if (q.choices[j] === q.ans) b.classList.add("ok"); else if (j === k) b.classList.add("bad");
+  });
+  $("qScore").textContent = G.score + " pts";
+  const head = ok ? `Bien vu, +${pts} pts.` : k < 0 ? "Temps écoulé." : "Raté.";
+  $("reveal").innerHTML = `${head} C'était <b></b> — <span></span>.`;
+  $("reveal").querySelector("b").textContent = q.ans.n;
+  $("reveal").querySelector("span").textContent = q.ans.d;
+  $("next").hidden = false;
+  $("next").textContent = G.i + 1 < Q_COUNT ? "Suivant" : "Voir mon score";
+  $("next").focus();
+}
+$("next").onclick = () => { G.i++; G.i < Q_COUNT ? ask() : endGame(); };
+document.addEventListener("keydown", e => {
+  if (!G || $("game").hidden || G.done) return;
+  const k = Number(e.key) - 1;
+  if (k >= 0 && k < 4) answer(k);
+});
+
+async function endGame() {
+  $("game").hidden = true; $("end").hidden = false;
+  $("final").textContent = G.score;
+  $("endMsg").textContent = `${G.good} bonne${G.good > 1 ? "s" : ""} réponse${G.good > 1 ? "s" : ""} sur ${Q_COUNT}.`;
+  if (!state.uid) { $("endMsg").textContent += " Partie non enregistrée (mode invité)."; return; }
+  try {
+    const d = state.row || {}, old = Number(d.best) || 0, best = Math.max(old, G.score);
+    await upsertRow({best, total: (Number(d.total) || 0) + G.score, games: (Number(d.games) || 0) + 1});
+    $("endMsg").textContent += G.score > old ? " Nouveau record personnel !" : ` Ton record : ${best}.`;
+    loadBoard();
+  } catch (e) {
+    console.warn(e);
+    $("endMsg").textContent += " Le score n'a pas pu être enregistré (problème de connexion).";
+  }
+}
+$("start").onclick = startGame;
+$("again").onclick = startGame;
+$("seeBoard").onclick = () => show("board");
+
+// ---------- Studio perso ----------
+function opts(el, labels, key, render) {
+  el.innerHTML = "";
+  labels.forEach((lab, i) => {
+    const b = document.createElement("button");
+    b.className = "opt"; b.type = "button";
+    render ? render(b, lab, i) : (b.textContent = lab);
+    b.setAttribute("aria-pressed", state.profile.avatar[key] === i);
+    b.onclick = () => { state.profile.avatar[key] = i; loadStudio(); };
+    el.appendChild(b);
+  });
+}
+function loadStudio() {
+  const a = state.profile.avatar;
+  $("pv").innerHTML = avatarSVG(a);
+  $("pvName").textContent = state.profile.pseudo || "Sans pseudo";
+  if (document.activeElement !== $("pseudo")) $("pseudo").value = state.profile.pseudo;
+  if (document.activeElement !== $("glyph")) $("glyph").value = a.g;
+  opts($("oFont"), AV_FONTS, "f", (b, n) => { b.textContent = "Ag"; b.style.fontFamily = `"${n}"`; b.title = n; b.setAttribute("aria-label", n); });
+  opts($("oColor"), AV_COLORS, "c", (b, col, i) => { b.classList.add("swatch"); b.style.background = col; b.setAttribute("aria-label", "Couleur " + (i + 1)); });
+  opts($("oEyes"), EYES, "e");
+  opts($("oAcc"), ACCS, "a");
+}
+$("pseudo").oninput = e => { state.profile.pseudo = e.target.value.slice(0, 20); $("pvName").textContent = state.profile.pseudo || "Sans pseudo"; };
+$("glyph").oninput = e => { if (e.target.value.trim()) { state.profile.avatar = cleanAvatar({...state.profile.avatar, g: e.target.value}); $("pv").innerHTML = avatarSVG(state.profile.avatar); } };
+$("save").onclick = async () => {
+  if (!state.uid) return;
+  $("save").disabled = true; $("saveMsg").textContent = "Enregistrement…";
+  try {
+    await upsertRow({});
+    $("saveMsg").textContent = "Perso enregistré.";
+    renderMeChip(); loadBoard();
+  } catch (e) {
+    console.warn(e);
+    $("saveMsg").textContent = "Échec de l'enregistrement, réessaie dans un instant.";
+  }
+  $("save").disabled = false;
+};
+
+// ---------- Classement ----------
+async function loadBoard() {
+  let rows;
+  try {
+    const {data, error} = await (await sb()).from("joueurs").select("user_id,pseudo,avatar,best,total,games").gt("games", 0).order("best", {ascending: false}).limit(50);
+    if (error) throw error;
+    rows = data.map(r => ({...r, id: r.user_id}));
+  } catch (e) { console.warn(e); $("boardEmpty").hidden = false; $("boardEmpty").textContent = "Classement indisponible pour le moment."; return; }
+  {
+    $("boardEmpty").hidden = rows.length > 0;
+    if (!rows.length) $("boardEmpty").textContent = "Le classement apparaîtra ici dès que quelqu'un aura terminé une partie. Lance une partie pour prendre la tête.";
+    const ol = $("board"); ol.innerHTML = "";
+    rows.forEach((r, i) => {
+      const li = document.createElement("li");
+      if (r.id === state.uid) li.className = "you";
+      li.innerHTML = `<span class="rk">${String(i + 1).padStart(2, "0")}</span>${avatarSVG(r.avatar)}<span class="nm"><span></span><small></small></span><span class="sc"></span>`;
+      li.querySelector(".nm > span").textContent = (typeof r.pseudo === "string" && r.pseudo.slice(0, 20)) || "Anonyme";
+      if (r.id === state.uid) li.querySelector(".nm > span").insertAdjacentHTML("afterend", '<span class="youtag">toi</span>');
+      li.querySelector("small").textContent = `${Number(r.games) || 0} partie${Number(r.games) > 1 ? "s" : ""} · ${Number(r.total) || 0} pts cumulés`;
+      li.querySelector(".sc").textContent = Number(r.best) || 0;
+      ol.appendChild(li);
+    });
+  }
+}
+
+// ---------- Décor ----------
+(() => {
+  const pick = shuffle(FONTS);
+  $("logo").innerHTML = "";
+  [..."Typoposite"].forEach((ch, i) => { const s = document.createElement("span"); s.textContent = ch; s.style.fontFamily = `"${pick[i].n}"`; $("logo").appendChild(s); });
+  const sh = $("sheet");
+  [..."TypoGRAPHIE&Qa"].concat(["?", "R"]).forEach((ch, i) => { const d = document.createElement("div"); d.textContent = ch; d.style.fontFamily = `"${pick[(i + 10) % pick.length].n}"`; sh.appendChild(d); });
+})();
+renderMeChip(); loadStudio(); initAccount();
+</script>
